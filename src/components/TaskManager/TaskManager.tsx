@@ -1,5 +1,7 @@
 import {useState} from "react";
 import {nanoid} from "nanoid";
+import {useTaskManager} from "../../hooks/TaskManager/taskManagerHook.ts";
+
 import "./TaskManager.css";
 
 type TaskType = {
@@ -10,21 +12,19 @@ type TaskType = {
 export const TaskManager = () => {
 
     const [title, setTitle] = useState("");
-    const [searchKeyword, setSearchKeyword] = useState("");
-    const [tasks, setTasks] = useState([] as TaskType[]);
+    const {
+        saveTask,
+        task,
+        deleteTask,
+        searchTask
+    } = useTaskManager();
 
     const completeTask = (id: string) => {
-        setTasks(tasks.filter((task) => task.taskId !== id));
+        deleteTask(id);
     }
 
     const updateTask = (id: string, newTaskTitle: string) => {
-        const newTask = tasks.slice();
-
-        const index = tasks.findIndex((task) => task.taskId === id);
-
-        newTask[index].taskTitle = newTaskTitle;
-
-        setTasks(newTask);
+        saveTask({taskId: id, taskTitle: newTaskTitle});
     }
 
     const addTask = () => {
@@ -38,18 +38,15 @@ export const TaskManager = () => {
             taskTitle: title
         }
 
-        setTasks((prev) => prev.concat(newTask));
+        saveTask(newTask);
+
         setTitle("");
 
     }
 
     const handleSearch = (keyword: string) => {
-        setSearchKeyword(keyword);
+        searchTask(keyword);
     }
-
-    const filteredTasks = tasks.filter((task) =>
-        task.taskTitle.toLowerCase().includes(searchKeyword.toLowerCase())
-    );
 
     return (
         <div className="container">
@@ -78,7 +75,7 @@ export const TaskManager = () => {
             </div>
 
             <ul className="container">
-                {filteredTasks.map((task) => (
+                {task.map((task) => (
                     <li key={task.taskId} className="task">
                         <div className="task">
                             <input
